@@ -12,7 +12,7 @@ ArgParser::ArgParser(int argc, char** argv){
 
     desc.add_options()
            ("help,h","help \n")
-           ("image,i",po::value<std::string>(),"Processed image")
+           ("image,i",po::value<std::vector<std::string>>(),"Processed image. (loop options)")
            ("threads,t",po::value<uint16_t>()->default_value(COUNT_OF_THREAD),"Count of threads")
            ("dump,d",po::value<std::string>()->default_value(DUMP_OF_PATH),"Dump of builded the integral image")
            ("verbose,v","Verbose option")
@@ -36,7 +36,7 @@ ArgParser::ArgParser(int argc, char** argv){
     }
 
     if(vm.count("image")){
-        this->_images.push_back(vm["image"].as<std::string>());
+        this->_images = (vm["image"].as<std::vector<std::string>>());
     }
 
     if(vm.count("threads")){

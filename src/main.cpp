@@ -2,40 +2,15 @@
 #include <cstring>
 #include <signal.h>
 #include <memory>
+#include <locale>
+#include <fstream>
+#include <future>
 #include <opencv2/opencv.hpp>
 #include "omp.h"
 #include "argparser.h"
 #include "integralimage.h"
 
-static bool isRun = true;
-
 using namespace cv;
-
-void myintegral(Mat& src, Mat& dst);
-
-void signalHandler(int signo) {
-
-    std::cerr << "Signal Handler get signal: ";
-
-    switch( signo ) {
-        case SIGABRT:
-            std::cerr << "SIGABRT" << std::endl;
-        break;
-
-        case SIGTERM:
-            std::cerr << "SIGTERM" << std::endl;
-        break;
-
-        case SIGINT:
-            std::cerr << "SIGINT" << std::endl;
-        break;
-    };
-
-    isRun = false;
-}
-
-
-using namespace std;
 
 int main(int argc, char *argv[]) {
 
@@ -49,7 +24,7 @@ int main(int argc, char *argv[]) {
 
     std::vector<std::string> images = args.getImages();
     std::string dumpPath 			= args.getDumpPath();
-    uint8_t 	countThreads		= args.getThreads();
+    uint16_t 	countThreads		= args.getThreads();
     bool		verbose				= args.isVerbose();
     uint16_t	max_threads			= omp_get_max_threads();
 
@@ -64,87 +39,55 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if( (countThreads > 0) && (countThreads < max_threads) ){
+    if( (countThreads > 0) && (countThreads <= max_threads) ){
         omp_set_num_threads( countThreads );
     }
-    else {
+    else if( countThreads == 0){
         omp_set_num_threads( max_threads );
     }
+    else {
+        std::cout<<" *** ERROR *** Parameter --threads (-t) is not valid. Maximum number of threads: "<<max_threads<<std::endl;
+        return 0;
+    }
 
+    auto start_time = std::chrono::steady_clock::now();
 
-    for(auto image: images){
+    #pragma omp parallel for
+    for(int i = 0; i < images.size(); i++){
+
+        std::string asd = images[i] + ".integral";
+        std::ofstream ofile(asd,std::ios_base::out | std::ios_base::app);
 
         Mat integ;
-        Mat src = imread( image.c_str() );
-        Mat dst = Mat::ones(src.rows,src.cols, CV_64FC3);
+        Mat dst ;
+        Mat src = imread( images[i].c_str() );
 
-        std::cout<<"channels src: "<<src.channels()<<std::endl;
-        std::cout<<"channels dst: "<<dst.channels()<<std::endl;
+        if(src.empty()){
+            std::cout<<" *** WARNING *** File "<<images[i].c_str()<<" can not be found "<<std::endl;
+            continue;
+        }
 
-        integral(src, integ);
-        myintegral(src, dst);
-//        std::cout<<src<<std::endl;
+        IntegralImage img(src);
 
-        std::cout<<dst<<std::endl;
-        std::cerr << integ << std::endl;
+        if(ofile.is_open()){
 
-//        imshow("asd",integ);
-//        waitKey(0);
-//        imshow("Display Image", dst);
-//        waitKey(0);
+            ofile << img <<std::endl;
+        }
+
+        ofile.close();
+
+ //       cvtColor(src,src,CV_BGR2GRAY);
+
+ //       Mat src2 = Mat::ones(10,10,CV_8UC3);
+
+//      integral(src, integ);
+
+
     }
+
+    auto end_time = std::chrono::steady_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end_time-start_time);
+    std::cout<<"Program execution time:"<<elapsed.count()<<std::endl;
 
     return 0;
-}
-
-
-void myintegral(Mat& src, Mat& dst){
-
-
-    uint16_t lx = src.rows;
-    uint16_t ly = src.cols;
-    uint16_t channels = src.channels();
-
-    #pragma omp parallel shared(dst)
-    {
-        for( int x = 0; x < lx; x++ ){
-            for( int y = 0; y < ly ; y++ ){
-
-            auto calc = [&](int x , int y, int channel){
-
-                if( x == 0 && y ==0){
-                    uchar a = src.at<Vec3b>(x,y)[channel];
-                    dst.at<Vec3d>(x,y)[channel] = a;
-                }
-                else if( x > 0 && y > 0){
-
-                    uchar a = src.at<Vec3b>(x,y)[channel];
-                    double b = dst.at<Vec3d>(x-1,y-1)[channel];
-                    double c = dst.at<Vec3d>(x,y-1)[channel];
-                    double d = dst.at<Vec3d>(x-1,y)[channel];
-
-                dst.at<Vec3d>(x,y)[channel] = a - b + c + d;
-
-                }
-                else if( y == 0){
-                    double a = src.at<Vec3b>(x,y)[channel];
-                    double b = dst.at<Vec3d>(x-1,y)[channel];
-                    dst.at<Vec3d>(x,y)[channel] =a + b;
-                }
-                else if( x == 0){
-
-                    double a = src.at<Vec3b>(x,y)[channel];
-                    double b = dst.at<Vec3d>(x,y-1)[channel];
-                    dst.at<Vec3d>(x,y)[channel] =a + b;
-                }
-            };
-
-            #pragma omp parallel for
-            for(uint8_t t = 0; t < channels; t++){
-                calc(x,y,t);
-            }
-
-            }
-        }
-    }
 }
