@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
         ofile.close();
 
         if( verbose ){
-            std::cout<<"Image "<<images[i]<<" has been converted. Save file: "<<fileIntegralSave<<std::endl;
+            std::cout<<"*** PROCESSED *** Image "<<images[i]<<" has been converted. Save file: "<<fileIntegralSave<<std::endl;
         }
     }
 
