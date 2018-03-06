@@ -18,13 +18,14 @@
 1. [Клонировать репозиторий OpenCV](http://github.com/opencv/opencv.git)
 2. Создать директорию сборки
 
-    Для примера: 
+---------------------------------------
+Для примера: 
 
-    @code{.bash}
-    cd ~/opencv
-    mkdir build
-    cd build
-    @endcode
+@code{.bash}
+cd ~/opencv
+mkdir build
+cd build
+@endcode
 
 3.  Конфигурация. Запустите cmake с ключём -D CMAKE_BUILD_TYPE=Release
 
