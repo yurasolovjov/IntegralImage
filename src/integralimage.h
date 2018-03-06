@@ -9,9 +9,6 @@ using namespace cv;
 
 /** @brief IntegralImage - Класс интегрального изображения
  * Предназначен для конвертации входного изображения в интегральное
- * @author Соловьёв Ю.И.
- * @version 1.0
- * @date Март 2017 года
 */
 class IntegralImage
 {

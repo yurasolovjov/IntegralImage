@@ -14,12 +14,18 @@ using namespace cv;
 
 static const std::string postfixName = ".integral";
 
-/** @brief Программа конвертации изображений в интегральные изображения *
+/** @brief Программный компонент конвертации матрицы изображения в интегральную матрицу *
+ *  @author Соловьёв Ю.И.
+ *  @version 1.0
+ *  @date Март 2017 года
  *
+ * @param [in] int argc - количество аргументов передаваемых через командную строку
+ * @param [in] char** argv - массив аргументов передаваемых через командную строку
 */
 int main(int argc, char *argv[]) {
 
 
+    /** Класс разбора параметров */
     ArgParser args(argc, argv);
 
     if(!args.isInit()){
@@ -34,12 +40,14 @@ int main(int argc, char *argv[]) {
 
     if(verbose){
 
+        std::cout<<"=======================================================================\n"<<std::endl;
         std::cout<<" *** PARAMETR *** verbose: "<<(verbose ? "true" : "false")<<std::endl;
         std::cout<<" *** PARAMETR *** threads(max = "<<max_threads<<"): "<<countThreads<<std::endl;
 
         for(auto image : images){
             std::cout<<" *** PARAMETER *** image: "<<image<<std::endl;
         }
+        std::cout<<"=======================================================================\n"<<std::endl;
     }
 
     if( (countThreads > 0) && (countThreads <= max_threads) ){
@@ -80,11 +88,18 @@ int main(int argc, char *argv[]) {
         }
 
         ofile.close();
+
+        if( verbose ){
+            std::cout<<"Image "<<images[i]<<" has been converted. Save file: "<<fileIntegralSave<<std::endl;
+        }
     }
 
     auto end_time = std::chrono::steady_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end_time-start_time);
-    std::cout<<"Program execution time:"<<elapsed.count()<<std::endl;
+
+    if(verbose){
+        std::cout<<"Program execution time:"<<elapsed.count()<<std::endl;
+    }
 
     return 0;
 }

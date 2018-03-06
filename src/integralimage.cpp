@@ -82,7 +82,7 @@ std::ofstream& operator <<( std::ofstream& f, IntegralImage& i){
 
         for(uint16_t x = 0; x < lx ; x++){
             for(uint16_t y = 0; y < ly ; y++){
-                f<<static_cast<double>(m.at<Vec3b>(x,y)[channel])<<", ";
+                f<<static_cast<double>(m.ptr<double>(x,y)[channel])<<", ";
             }
             f<<std::endl;
         }
