@@ -50,6 +50,9 @@ int main(int argc, char *argv[]) {
         std::cout<<"=======================================================================\n"<<std::endl;
     }
 
+    /** Функции OpenMP Получающие информациию о возможно-запускаемом количестве потоков
+     * и соответственно устанавливающие их
+    */
     if( (countThreads > 0) && (countThreads <= max_threads) ){
         omp_set_num_threads( countThreads );
     }
@@ -63,6 +66,8 @@ int main(int argc, char *argv[]) {
 
     auto start_time = std::chrono::steady_clock::now();
 
+    /** Дириктива OpenMP сообщающая о необходимости распараллеливания.
+     *  Поддерживается всеми известными компиляторами*/
     #pragma omp parallel for
     for(int i = 0; i < images.size(); i++){
 
