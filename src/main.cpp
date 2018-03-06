@@ -12,6 +12,11 @@
 
 using namespace cv;
 
+static const std::string postfixName = ".integral";
+
+/** @brief Программа конвертации изображений в интегральные изображения *
+ *
+*/
 int main(int argc, char *argv[]) {
 
 
@@ -23,7 +28,6 @@ int main(int argc, char *argv[]) {
     }
 
     std::vector<std::string> images = args.getImages();
-    std::string dumpPath 			= args.getDumpPath();
     uint16_t 	countThreads		= args.getThreads();
     bool		verbose				= args.isVerbose();
     uint16_t	max_threads			= omp_get_max_threads();
@@ -32,7 +36,6 @@ int main(int argc, char *argv[]) {
 
         std::cout<<" *** PARAMETR *** verbose: "<<(verbose ? "true" : "false")<<std::endl;
         std::cout<<" *** PARAMETR *** threads(max = "<<max_threads<<"): "<<countThreads<<std::endl;
-        std::cout<<" *** PARAMETR *** dump of path: "<<dumpPath<<std::endl;
 
         for(auto image : images){
             std::cout<<" *** PARAMETER *** image: "<<image<<std::endl;
@@ -55,34 +58,28 @@ int main(int argc, char *argv[]) {
     #pragma omp parallel for
     for(int i = 0; i < images.size(); i++){
 
-        std::string asd = images[i] + ".integral";
-        std::ofstream ofile(asd,std::ios_base::out | std::ios_base::app);
+        std::string fileIntegralSave = images[i] + postfixName;
 
         Mat integ;
-        Mat dst ;
+        Mat dst;
         Mat src = imread( images[i].c_str() );
 
-        if(src.empty()){
+        if( src.empty() ){
             std::cout<<" *** WARNING *** File "<<images[i].c_str()<<" can not be found "<<std::endl;
             continue;
         }
 
         IntegralImage img(src);
 
-        if(ofile.is_open()){
+        integral(src,integ);
 
+        std::ofstream ofile(fileIntegralSave, std::ios_base::out | std::ios_base::app);
+
+        if(ofile.is_open()){
             ofile << img <<std::endl;
         }
 
         ofile.close();
-
- //       cvtColor(src,src,CV_BGR2GRAY);
-
- //       Mat src2 = Mat::ones(10,10,CV_8UC3);
-
-//      integral(src, integ);
-
-
     }
 
     auto end_time = std::chrono::steady_clock::now();

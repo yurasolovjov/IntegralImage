@@ -5,16 +5,20 @@
 #include "argparser.h"
 
 
+/** @brief Конструктор c параметрами
+*   @param argc - количество аргументов в массиве командной строки
+*   @param argv - массив аргументов командной строки
+*/
 ArgParser::ArgParser(int argc, char** argv){
 
     std::cout<<"Parameters: "<<std::endl;
     po::options_description desc("The integral image build\n short description: ");
 
+    /** Структура разбора аргументов командной строки*/
     desc.add_options()
            ("help,h","help \n")
            ("image,i",po::value<std::vector<std::string>>(),"Processed image. (loop options)")
            ("threads,t",po::value<uint16_t>()->default_value(COUNT_OF_THREAD),"Count of threads")
-           ("dump,d",po::value<std::string>()->default_value(DUMP_OF_PATH),"Dump of builded the integral image")
            ("verbose,v","Verbose option")
     ;
 
@@ -30,32 +34,25 @@ ArgParser::ArgParser(int argc, char** argv){
          std::cerr<<"*** ERROR *** "<<e.what()<<std::endl;
     }
 
+    /** Вывод справочного сообщения */
     if (vm.count("help")){
           std::cout<<desc<<std::endl;
           this->_isInit = false;
     }
 
+    /** Получение пути расположения файла изображения */
     if(vm.count("image")){
         this->_images = (vm["image"].as<std::vector<std::string>>());
     }
 
+    /** Получение количества потоков переданных через командную строку */
     if(vm.count("threads")){
         this->_countThreads = vm["threads"].as<uint16_t>();
     }
 
-    if(vm.count("dump")){
-        this->_dumpImage = vm["dump"].as<std::string>();
-    }
-
+    /** Получение флага подробного вывода информации о выполнении процесса */
     if(vm.count("verbose")){
         this->_verbose = true;
     }
     else this->_verbose = false;
 }
-
-ArgParser::~ArgParser(){
-}
-
-
-
-

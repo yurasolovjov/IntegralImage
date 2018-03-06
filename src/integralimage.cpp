@@ -15,74 +15,62 @@
 IntegralImage::IntegralImage(Mat& src){
 
     if(!src.empty()){
-        Mat d = Mat::ones(src.rows, src.cols, src.channels() == 3 ? CV_64FC3 : src.channels() == 2 ? CV_64FC2 : CV_64FC1);
-        dst = d;
-        processing(src);
-//        processing();
+        dst = Mat::ones(src.rows, src.cols, src.channels() == 3 ? CV_64FC3 : src.channels() == 2 ? CV_64FC2 : CV_64F);
+
+        if(!dst.empty()){
+            IntegrateAlgorithm(src);
+        }
     }
 }
 
 
-void IntegralImage::processing(Mat& src){
-
-
-    auto start_time = std::chrono::steady_clock::now();
+void IntegralImage::IntegrateAlgorithm(Mat& src){
 
     uint16_t lx = src.rows;
     uint16_t ly = src.cols;
     uint16_t channels = src.channels();
 
-//    #pragma omp parallel
-  //  {
-        for( int x = 0; x < lx; x++ ){
-            for( int y = 0; y < ly ; y++ ){
+    for( int x1 = 0; x1 < lx; x1++ ){
+        for( int y1 = 0; y1 < ly ; y1++ ){
 
             auto calc = [&](int x , int y, int channel){
 
                 if( x == 0 && y ==0){
-                    uchar a = src.at<Vec3b>(x,y)[channel];
-                    dst.at<Vec3d>(x,y)[channel] = a;
+                    uchar a = src.ptr<uchar>(x,y)[channel];
+                    dst.ptr<double>(x,y)[channel] = a;
                 }
                 else if( x > 0 && y > 0){
 
-                    uchar a = src.at<Vec3b>(x,y)[channel];
-                    double b = dst.at<Vec3d>(x-1,y-1)[channel];
-                    double c = dst.at<Vec3d>(x,y-1)[channel];
-                    double d = dst.at<Vec3d>(x-1,y)[channel];
+                    uchar  a = src.ptr<uchar>(x,y)[channel];
+                    double b = dst.ptr<double>(x-1,y-1)[channel];
+                    double c = dst.ptr<double>(x,y-1)[channel];
+                    double d = dst.ptr<double>(x-1,y)[channel];
 
-                    dst.at<Vec3d>(x,y)[channel] = a - b + c + d;
+                    dst.ptr<double>(x,y)[channel] = a - b + c + d;
 
                 }
                 else if( y == 0){
-                    double a = src.at<Vec3b>(x,y)[channel];
-                    double b = dst.at<Vec3d>(x-1,y)[channel];
-                    dst.at<Vec3d>(x,y)[channel] = a + b;
+                    uchar a = src.ptr<uchar>(x,y)[channel];
+                    double b = dst.ptr<double>(x-1,y)[channel];
+                    dst.ptr<double>(x,y)[channel] = a + b;
                 }
                 else if( x == 0){
 
-                    double a = src.at<Vec3b>(x,y)[channel];
-                    double b = dst.at<Vec3d>(x,y-1)[channel];
-                    dst.at<Vec3d>(x,y)[channel] =a + b;
+                    uchar a = src.ptr<uchar>(x,y)[channel];
+                    double b = dst.ptr<double>(x,y-1)[channel];
+                    dst.ptr<double>(x,y)[channel] = a + b;
                 }
             };
 
-//            #pragma omp parallel for shared(dst)
             for(uint8_t t = 0; t < channels; t++){
-                calc(x,y,t);
+                calc(x1,y1,t);
             }
 
             }
-        }
-    //}
-
-    auto end_time = std::chrono::steady_clock::now();
-
-    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end_time-start_time);
-    std::cout<<"Calculate time: "<<elapsed.count()<<std::endl;
+    }
 }
 
 /** Запись в файл нет никакого смысла паралеллить*/
-//std::ofstream& operator <<( std::ofstream& f, Mat& m){
 std::ofstream& operator <<( std::ofstream& f, IntegralImage& i){
 
     Mat m = i.get();
