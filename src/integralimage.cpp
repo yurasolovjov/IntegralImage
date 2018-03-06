@@ -23,15 +23,23 @@ IntegralImage::IntegralImage(Mat& src){
     }
 }
 
-
+/** @brief Метод нахождения интегрального изображения
+* 	@param [in] Mat& - Исходная матрица
+*   @warning Полученное интегрально изображение хранится внитри класса
+*
+* Алгорит расчёта одного элемента интегральной матрицы представлен ниже:
+*
+*\f$ II(x_i,y_i) = I(x_i,y_i) - I(x_{i-1},y_{i-1}) + I(x_{i-1},y_i) + I(x_i,y_{i-1}) \f$
+*
+*/
 void IntegralImage::IntegrateAlgorithm(Mat& src){
 
     uint16_t lx = src.rows;
     uint16_t ly = src.cols;
     uint16_t channels = src.channels();
 
-    for( int x1 = 0; x1 < lx; x1++ ){
-        for( int y1 = 0; y1 < ly ; y1++ ){
+    for( int x = 0; x < lx; x++ ){
+        for( int y = 0; y < ly ; y++ ){
 
             auto calc = [&](int x , int y, int channel){
 
@@ -63,7 +71,7 @@ void IntegralImage::IntegrateAlgorithm(Mat& src){
             };
 
             for(uint8_t t = 0; t < channels; t++){
-                calc(x1,y1,t);
+                calc(x,y,t);
             }
 
             }
