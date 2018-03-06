@@ -84,8 +84,6 @@ int main(int argc, char *argv[]) {
 
         IntegralImage img(src);
 
-        integral(src,integ);
-
         std::ofstream ofile(fileIntegralSave, std::ios_base::out | std::ios_base::app);
 
         if(ofile.is_open()){
