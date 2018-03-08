@@ -12,13 +12,22 @@
 #include <thread>
 #include <future>
 
-IntegralImage::IntegralImage(Mat& src){
+IntegralImage::IntegralImage(Mat& src, uint8_t algorithm){
 
     if(!src.empty()){
         dst = Mat::ones(src.rows, src.cols, src.channels() == 3 ? CV_64FC3 : src.channels() == 2 ? CV_64FC2 : CV_64F);
+        sum = Mat::ones(src.rows, src.cols, src.channels() == 3 ? CV_64FC3 : src.channels() == 2 ? CV_64FC2 : CV_64F);
 
         if(!dst.empty()){
-            IntegrateAlgorithm(src);
+            switch (algorithm) {
+                case 2:
+                    IntegrateAlgorithm_2(src);
+                break;
+
+                default:
+                    IntegrateAlgorithm_1(src);
+                break;
+            }
         }
     }
 }
@@ -32,8 +41,9 @@ IntegralImage::IntegralImage(Mat& src){
 *\f$ II(x_i,y_i) = I(x_i,y_i) - I(x_{i-1},y_{i-1}) + I(x_{i-1},y_i) + I(x_i,y_{i-1}) \f$
 *
 */
-void IntegralImage::IntegrateAlgorithm(Mat& src){
+void IntegralImage::IntegrateAlgorithm_1(Mat& src){
 
+    auto start_time = std::chrono::steady_clock::now();
     uint16_t lx = src.rows;
     uint16_t ly = src.cols;
     uint16_t channels = src.channels();
@@ -76,6 +86,51 @@ void IntegralImage::IntegrateAlgorithm(Mat& src){
 
             }
     }
+    auto end_time = std::chrono::steady_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end_time-start_time);
+    std::cout<<"Integrate algorithm 1:"<<elapsed.count()<<std::endl;
+}
+
+void IntegralImage::IntegrateAlgorithm_2(Mat& src){
+
+    auto start_time = std::chrono::steady_clock::now();
+    uint16_t lx = src.rows;
+    uint16_t ly = src.cols;
+    uint16_t channels = src.channels();
+
+//    Mat sum = Mat::ones(lx,ly, CV_8U);
+
+    for( int x = 0; x < lx; x ++){
+        for( int y = 0; y < ly; y++){
+
+        auto calc = [&](int x , int y, int channel){
+
+                if( x == 0 && y ==0){
+                    sum.ptr<double>(x,y)[channel] = src.ptr<uchar>(x,y)[channel];
+                    dst.ptr<double>(x,y)[channel] = sum.ptr<double>(x,y)[channel];
+                }
+
+                else if( x > 0 && y > 0){
+                    sum.ptr<double>(x,y)[channel] = src.ptr<uchar>(x,y)[channel] + sum.ptr<double>(x,y-1)[channel];
+                    dst.ptr<double>(x,y)[channel] = dst.ptr<double>(x-1,y)[channel] + sum.ptr<double>(x,y)[channel];
+                }
+                else if( y == 0){
+                    sum.ptr<double>(x,y)[channel] = src.ptr<uchar>(x,y)[channel] ;
+                    dst.ptr<double>(x,y)[channel] = dst.ptr<double>(x-1,y)[channel] + sum.ptr<double>(x,y)[channel];
+                }
+                else if( x == 0){
+                    sum.ptr<double>(x,y)[channel] = src.ptr<uchar>(x,y)[channel] + sum.ptr<double>(x,y-1)[channel];
+                    dst.ptr<double>(x,y)[channel] = sum.ptr<double>(x,y)[channel];
+                }
+        };
+
+        for(uint8_t i = 0; i < channels; i++)
+            calc(x,y,i);
+        }
+    }
+    auto end_time = std::chrono::steady_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end_time-start_time);
+    std::cout<<"Integrate algorithm 2:"<<elapsed.count()<<std::endl;
 }
 
 /** Запись в файл нет никакого смысла паралеллить*/
