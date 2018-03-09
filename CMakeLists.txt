@@ -64,12 +64,6 @@ if( isInit )
 
     add_executable( ${PROJECT_NAME} ${SOURCE_FILES} )
 
-    if(WIN32)
-        set(DEPENDENCY_LIB ws2_32 wsock32)
-    else(UNIX)
-        set(DEPENDENCY_LIB rt pthread )
-    endif()
-
     target_link_libraries( ${PROJECT_NAME} ${Boost_LIBRARIES} ${DEPENDENCY_LIB} ${OpenCV_LIBS})
 
 else()
