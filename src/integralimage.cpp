@@ -16,11 +16,10 @@ IntegralImage::IntegralImage(Mat& src, uint8_t algorithm){
 
     if(!src.empty()){
         dst = Mat::ones(src.rows, src.cols, src.channels() == 3 ? CV_64FC3 : src.channels() == 2 ? CV_64FC2 : CV_64F);
-        sum = Mat::ones(src.rows, src.cols, src.channels() == 3 ? CV_64FC3 : src.channels() == 2 ? CV_64FC2 : CV_64F);
 
         if(!dst.empty()){
             switch (algorithm) {
-                case 2:
+                case Algotithm2:
                     IntegrateAlgorithm_2(src);
                 break;
 
@@ -86,49 +85,71 @@ void IntegralImage::IntegrateAlgorithm_1(Mat& src){
 
             }
     }
+
     auto end_time = std::chrono::steady_clock::now();
-    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end_time-start_time);
-    std::cout<<"Integrate algorithm 1:"<<elapsed.count()<<std::endl;
+
+    /* Рассчёт затраченного времени на вычисление ИИ*/
+    time = std::chrono::duration_cast<std::chrono::milliseconds>(end_time-start_time);
 }
 
+/** @brief Метод нахождения интегрального изображения
+* 	@param [in] Mat& - Исходная матрица
+*   @warning Полученное интегрально изображение хранится внитри класса
+*
+* Алгорит расчёта одного элемента интегральной матрицы представлен ниже:
+*
+*\f$ S(x,y) = I(x,y) + S(x,y-1)\f$ \n
+*\f$ II(x,y) = II(x-1,y) + S(x,y)\f$ \n
+*\f$ S(x,y)\f$ - Cумма в строке \n
+*\f$ I(x,y)\f$ - Исходное изображение \n
+*\f$ II(x,y)\f$ - Интегральное изображение \n
+*
+*/
 void IntegralImage::IntegrateAlgorithm_2(Mat& src){
 
     auto start_time = std::chrono::steady_clock::now();
-    uint16_t lx = src.rows;
-    uint16_t ly = src.cols;
+    Mat 	 sum = Mat::ones(src.rows,
+                             src.cols,
+                             src.channels() == 3 ? CV_64FC3 :
+                             src.channels() == 2 ? CV_64FC2 : CV_64F);
+    uint16_t lx  = src.rows;
+    uint16_t ly  = src.cols;
     uint16_t channels = src.channels();
 
-    for( int x = 0; x < lx; x ++){
-        for( int y = 0; y < ly; y++){
+    #pragma omp parallel for
+    for(uint8_t i = 0; i < channels; i++){
+        for( int x = 0; x < lx; x ++){
+            for( int y = 0; y < ly; y++){
 
-        auto calc = [&](int x , int y, int channel){
+                auto calc = [&](int x , int y, int channel){
 
-                if( x == 0 && y ==0){
-                    sum.ptr<double>(x,y)[channel] = src.ptr<uchar>(x,y)[channel];
-                    dst.ptr<double>(x,y)[channel] = sum.ptr<double>(x,y)[channel];
-                }
+                    if( x == 0 && y ==0){
+                        sum.ptr<double>(x,y)[channel] = src.ptr<uchar>(x,y)[channel];
+                        dst.ptr<double>(x,y)[channel] = sum.ptr<double>(x,y)[channel];
+                    }
 
-                else if( x > 0 && y > 0){
-                    sum.ptr<double>(x,y)[channel] = src.ptr<uchar>(x,y)[channel] + sum.ptr<double>(x,y-1)[channel];
-                    dst.ptr<double>(x,y)[channel] = dst.ptr<double>(x-1,y)[channel] + sum.ptr<double>(x,y)[channel];
-                }
-                else if( y == 0){
-                    sum.ptr<double>(x,y)[channel] = src.ptr<uchar>(x,y)[channel] ;
-                    dst.ptr<double>(x,y)[channel] = dst.ptr<double>(x-1,y)[channel] + sum.ptr<double>(x,y)[channel];
-                }
-                else if( x == 0){
-                    sum.ptr<double>(x,y)[channel] = src.ptr<uchar>(x,y)[channel] + sum.ptr<double>(x,y-1)[channel];
-                    dst.ptr<double>(x,y)[channel] = sum.ptr<double>(x,y)[channel];
-                }
-        };
+                    else if( x > 0 && y > 0){
+                        sum.ptr<double>(x,y)[channel] = src.ptr<uchar>(x,y)[channel] + sum.ptr<double>(x,y-1)[channel];
+                        dst.ptr<double>(x,y)[channel] = dst.ptr<double>(x-1,y)[channel] + sum.ptr<double>(x,y)[channel];
+                    }
+                    else if( y == 0){
+                        sum.ptr<double>(x,y)[channel] = src.ptr<uchar>(x,y)[channel] ;
+                        dst.ptr<double>(x,y)[channel] = dst.ptr<double>(x-1,y)[channel] + sum.ptr<double>(x,y)[channel];
+                    }
+                    else if( x == 0){
+                        sum.ptr<double>(x,y)[channel] = src.ptr<uchar>(x,y)[channel] + sum.ptr<double>(x,y-1)[channel];
+                        dst.ptr<double>(x,y)[channel] = sum.ptr<double>(x,y)[channel];
+                    }
+                };
 
-        for(uint8_t i = 0; i < channels; i++)
-            calc(x,y,i);
+                calc(x,y,i);
+            }
         }
     }
+
+    /* Рассчёт затраченного времени на вычисление ИИ*/
     auto end_time = std::chrono::steady_clock::now();
-    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end_time-start_time);
-    std::cout<<"Integrate algorithm 2:"<<elapsed.count()<<std::endl;
+    time = std::chrono::duration_cast<std::chrono::milliseconds>(end_time-start_time);
 }
 
 /** Запись в файл нет никакого смысла паралеллить*/

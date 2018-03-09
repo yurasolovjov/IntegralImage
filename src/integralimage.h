@@ -3,6 +3,7 @@
 
 #include <opencv2/opencv.hpp>
 #include <fstream>
+#include <chrono>
 
 using namespace cv;
 
@@ -25,6 +26,11 @@ public:
      *  @return Mat& - ссылка на объект матрицы интегрального изображения
     */
     Mat& get(){ return dst; }
+
+    /** @brief Метод возвращает время вычисления интегрального изображения
+     *  @return std::chrono::duration<double>& - время вычисления ии.
+    */
+    std::chrono::duration<double>& getTimeCalculate(){ return time ;}
 
     /** @brief Дружественная функция перегрузки оператора <<
      *  @param [in] IntegralImage& - Класс интегрального изображения
@@ -52,11 +58,11 @@ private:
      *
      * Алгорит расчёта одного элемента интегральной матрицы представлен ниже:
      *
-     *\f$ S(x,y) = I(x,y) + S(x,y-1)\f$
-     *\f$ II(x,y) = II(x-1,y) + S(x,y)\f$
-     *\f$ S(x,y)\f$ - Cумма в строке
-     *\f$ I(x,y)\f$ - Исходное изображение
-     *\f$ II(x,y)\f$ - Интегральное изображение
+     *\f$ S(x,y) = I(x,y) + S(x,y-1)\f$ \n
+     *\f$ II(x,y) = II(x-1,y) + S(x,y)\f$ \n
+     *\f$ S(x,y)\f$ - Cумма в строке \n
+     *\f$ I(x,y)\f$ - Исходное изображение \n
+     *\f$ II(x,y)\f$ - Интегральное изображение \n
      *
     */
     void IntegrateAlgorithm_2(Mat& src);
@@ -64,7 +70,28 @@ private:
 private:
     /** Матрица интегрального изображения*/
     Mat dst ;
-    Mat sum;
+
+    /** */
+    std::chrono::duration<double> time ;
+
+public:
+
+    /** @param Алгоритм вычисления интегрального изображения \n
+     *\f$ II(x,y) = I(x,y) - II(x-1,y-1) + II(x-1,y) + II(x,y-1)\f$
+    */
+    static const uint8_t Algotithm1 = 1;
+
+    /** @param Алгоритм вычисления интегрального изображения
+     *\f$ S(x,y) = I(x,y) + S(x,y-1)\f$ \n
+     *\f$ II(x,y) = II(x-1,y) + S(x,y)\f$ \n
+     *\f$ S(x,y)\f$ - Cумма в строке \n
+     *\f$ I(x,y)\f$ - Исходное изображение \n
+     *\f$ II(x,y)\f$ - Интегральное изображение \n
+     *
+    */
+    static const uint8_t Algotithm2 = 2;
+
+
 };
 
 #endif // INTEGRALIMAGE_H

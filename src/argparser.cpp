@@ -11,7 +11,6 @@
 */
 ArgParser::ArgParser(int argc, char** argv){
 
-    std::cout<<"Parameters: "<<std::endl;
     po::options_description desc("The integral image build\n short description: ");
 
     /** Структура разбора аргументов командной строки*/
