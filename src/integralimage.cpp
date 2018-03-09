@@ -98,8 +98,6 @@ void IntegralImage::IntegrateAlgorithm_2(Mat& src){
     uint16_t ly = src.cols;
     uint16_t channels = src.channels();
 
-//    Mat sum = Mat::ones(lx,ly, CV_8U);
-
     for( int x = 0; x < lx; x ++){
         for( int y = 0; y < ly; y++){
 
