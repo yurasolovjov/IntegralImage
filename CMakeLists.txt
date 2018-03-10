@@ -93,3 +93,24 @@ if(BUILD_DOXYGEN_DOCS)
         message(STATUS "doxygen not found")
     endif()
 endif()
+
+#Сборка юнит тестов с использованием google test frameworkЖ
+if(BUILD_GTEST)
+
+    set(GTEST_ROOT "/home/solovjov/repo/IntegralImage/external/googletest/googletest")
+
+    add_subdirectory(${GTEST_ROOT})
+    INCLUDE_DIRECTORIES(${gtest_SOURCE_DIR}/include ${COMMON_INCLUDES})
+
+    #include_directories(${GTEST_INCLUDE_DIRS})
+
+    set(test_name "integral_image_test")
+
+    #Фалый юнит тестов
+    set(src_test_files gtests/main.cc)
+
+    add_executable( ${test_name} ${src_test_files} )
+
+    target_link_libraries( ${test_name} gtest )
+
+endif()
