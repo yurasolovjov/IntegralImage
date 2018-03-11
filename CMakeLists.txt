@@ -5,10 +5,9 @@ cmake_minimum_required( VERSION 3.6 )
 set(isInit on)
 
 #Подключение библиотеки Boost
-if(WIN32)
-    set(BOOST_ROOT "C:/boost_1_64_0/boost_mingw_link_static")
-else(UNIX)
-    set(BOOST_ROOT "/usr/lib/boost_1_66")
+
+if( NOT EXISTS ${BOOST_ROOT} )
+    message(STATUS "Boost not found. Please set ENVIRONMENT BOOST_ROOT")
 endif()
 
 set(BOOST_DIR ${BOOST_ROOT})
