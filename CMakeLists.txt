@@ -102,8 +102,6 @@ if(BUILD_GTEST)
 
     include_directories(${gtest_SOURCE_DIR}/include ${COMMON_INCLUDES})
 
-    #include_directories(${GTEST_INCLUDE_DIRS})
-
     set(test_name "integral_image_test")
 
     #Файлы юнит тестов
