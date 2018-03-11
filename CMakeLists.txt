@@ -97,16 +97,17 @@ endif()
 #Сборка юнит тестов с использованием google test frameworkЖ
 if(BUILD_GTEST)
 
-    set(GTEST_ROOT "/home/solovjov/repo/IntegralImage/external/googletest/googletest")
+    set(GTEST_ROOT ${CMAKE_SOURCE_DIR}/external/googletest/googletest)
 
     add_subdirectory(${GTEST_ROOT})
-    INCLUDE_DIRECTORIES(${gtest_SOURCE_DIR}/include ${COMMON_INCLUDES})
+
+    include_directories(${gtest_SOURCE_DIR}/include ${COMMON_INCLUDES})
 
     #include_directories(${GTEST_INCLUDE_DIRS})
 
     set(test_name "integral_image_test")
 
-    #Фалый юнит тестов
+    #Файлы юнит тестов
     set(src_test_files gtests/main.cc)
 
     add_executable( ${test_name} ${src_test_files} )
