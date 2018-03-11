@@ -64,7 +64,7 @@ if( isInit )
 
     add_executable( ${PROJECT_NAME} ${SOURCE_FILES} )
 
-    target_link_libraries( ${PROJECT_NAME} ${Boost_LIBRARIES} ${DEPENDENCY_LIB} ${OpenCV_LIBS})
+    target_link_libraries( ${PROJECT_NAME} ${Boost_LIBRARIES} ${OpenCV_LIBS})
 
 else()
     message(STATUS "*** ERROR *** Build is down")
@@ -108,10 +108,16 @@ if(BUILD_GTEST)
     set(test_name "integral_image_test")
 
     #Файлы юнит тестов
-    set(src_test_files gtests/main.cc)
+    set(src_test_files gtests/main.cc
+                       gtests/argparser.cc
+                       gtests/integralimage.cc
+        )
 
+
+    add_library( ${PROJECT_NAME}_lib ${SOURCE_FILES} )
+    target_link_libraries( ${PROJECT_NAME}_lib ${Boost_LIBRARIES} ${OpenCV_LIBS})
     add_executable( ${test_name} ${src_test_files} )
 
-    target_link_libraries( ${test_name} gtest )
+    target_link_libraries( ${test_name} gtest ${PROJECT_NAME}_lib)
 
 endif()
